@@ -2,9 +2,8 @@ from flask_sqlalchemy import SQLAlchemy
 from sqlalchemy_serializer import SerializerMixin
 from sqlalchemy.orm import validates
 
-from datetime import datetime
-
 db = SQLAlchemy()
+
 hero_powers = db.Table(
     "hero_power",
     db.Column("hero_id", db.ForeignKey("heroes.id"), primary_key=True),
@@ -42,10 +41,7 @@ class Power(db.Model, SerializerMixin):
     def __repr__(self):
         return f"Power {self.name} was created at {self.created_at}."
     
-    @validates("description")
-    def validate_description(self, key , description):
-        if description and len(description) < 20:
-            raise ValueError("Description must be atleast 20 characters long.")
-        return description
-    
-    
+   
+
+
+

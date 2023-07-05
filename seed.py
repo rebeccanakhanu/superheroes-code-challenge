@@ -1,38 +1,45 @@
-import random
+#!usr/bin/env python3
+from random import randint, choice as rc
+from faker import Faker
 from models import db, Hero, Power, hero_powers
+from app import app
 
-print("🦸‍♀️ Seeding powers...")
-Power.create([
-  { 'name': "super strength", 'description': "gives the wielder super-human strengths" },
-  { 'name': "flight", 'description': "gives the wielder the ability to fly through the skies at supersonic speed" },
-  { 'name': "super human senses", 'description': "allows the wielder to use her senses at a super-human level" },
-  { 'name': "elasticity", 'description': "can stretch the human body to extreme lengths" }
-])
+fake = Faker()
 
-print("🦸‍♀️ Seeding heroes...")
-Hero.create([
-  { 'name': "Kamala Khan", 'super_name': "Ms. Marvel" },
-  { 'name': "Doreen Green", 'super_name': "Squirrel Girl" },
-  { 'name': "Gwen Stacy", 'super_name': "Spider-Gwen" },
-  { 'name': "Janet Van Dyne", 'super_name': "The Wasp" },
-  { 'name': "Wanda Maximoff", 'super_name': "Scarlet Witch" },
-  { 'name': "Carol Danvers", 'super_name': "Captain Marvel" },
-  { 'name': "Jean Grey", 'super_name': "Dark Phoenix" },
-  { 'name': "Ororo Munroe", 'super_name': "Storm" },
-  { 'name': "Kitty Pryde", 'super_name': "Shadowcat" },
-  { 'name': "Elektra Natchios", 'super_name': "Elektra" }
-])
+with app.app_context():
+    Hero.query.delete()
+    Power.query.delete()
 
-print("🦸‍♀️ Adding powers to heroes...")
+    heroes = []
+    for i in range(50):
+        hero = Hero(
+          name= fake.name(),
+          super_name = fake.first_name(),  
+        )
+        heroes.append(hero)
+    db.session.add_all(heroes)
 
-strengths = ["Strong", "Weak", "Average"]
-heroes = Hero.query.all()
-for hero in heroes:
-  for _ in range(random.randint(1, 3)):
-    # get a random power
-    power = Power.query.order_by(random.random()).first()
+    powers = []
+    for i in range(50):
+        power = Power(
+            name = fake.name(),
+            description = fake.paragraph()
+        )
+        powers.append(power)
+    db.session.add_all(powers)
 
-    hero_power = hero_powers(hero_id=hero.id, power_id=power.id, strength=random.choice(strengths))
-    hero_power.save()
-    
-print("🦸‍♀️ Done seeding!")
+    combinations = set()
+    strengths = ["Strong", "Weak", "Average"]
+    for _ in range(50):
+        hero_id = randint(1, 50)
+        power_id = randint(1, 50)
+        strength = rc(strengths)
+
+        if (hero_id, power_id, strength) in combinations:
+            continue
+        combinations.add((hero_id, power_id, strength))
+        hero_power_data = {"hero_id": hero_id, "power_id": power_id, "strength": strength}
+        statement = db.insert(hero_powers).values(hero_power_data)
+        db.session.execute(statement)
+        db.session.commit()
+    db.session.commit()
