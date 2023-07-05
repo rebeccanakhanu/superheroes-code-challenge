@@ -34,5 +34,5 @@ for hero in heroes:
 
     hero_power = hero_powers(hero_id=hero.id, power_id=power.id, strength=random.choice(strengths))
     hero_power.save()
-
+    
 print("🦸‍♀️ Done seeding!")
